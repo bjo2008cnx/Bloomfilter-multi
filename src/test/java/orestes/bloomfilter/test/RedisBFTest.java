@@ -7,11 +7,10 @@ import orestes.bloomfilter.redis.BloomFilterRedis;
 import orestes.bloomfilter.redis.CountingBloomFilterRedis;
 import orestes.bloomfilter.redis.helper.RedisPool;
 import orestes.bloomfilter.test.helper.Helper;
-import redis.clients.jedis.Protocol;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import redis.clients.jedis.Protocol;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,12 +36,9 @@ public class RedisBFTest {
 
     @Parameterized.Parameters(name = "Redis Bloom Filter test with {0}")
     public static Collection<Object[]> data() throws Exception {
-        Object[][] data = {
-                {"normal", FilterTypes.NORMAL},
-                {"pool_config", FilterTypes.POOL_CONFIG},
-                {"sentinel_config", FilterTypes.SENTINEL_CONFIG},
-                {"counting", FilterTypes.COUNTING}
-        };
+//        Object[][] data = {{"normal", FilterTypes.NORMAL}, {"pool_config", FilterTypes.POOL_CONFIG}, {"sentinel_config", FilterTypes.SENTINEL_CONFIG},
+//                {"counting", FilterTypes.COUNTING}};
+        Object[][] data = {{"counting", FilterTypes.COUNTING}};
         return Arrays.asList(data);
     }
 
@@ -55,22 +51,16 @@ public class RedisBFTest {
     }
 
     private BloomFilter<String> createFilter(String name, int n, double p, boolean overwrite, int database) {
-        if(filterTypes == FilterTypes.COUNTING)
-            return createCountingRedisFilter(name, n, p, HashMethod.MD5, overwrite, database);
-        else if (filterTypes == FilterTypes.NORMAL)
-            return createRedisFilter(name, n, p, HashMethod.MD5, overwrite, database);
-        else if (filterTypes == FilterTypes.POOL_CONFIG)
-            return createRedisPoolFilter(name, n, p, HashMethod.MD5, overwrite, database);
-        else if (filterTypes == FilterTypes.SENTINEL_CONFIG)
-            return createRedisSentinelFilter(name, n, p, HashMethod.MD5, overwrite, database);
-        else
-            throw new IllegalArgumentException();
+        if (filterTypes == FilterTypes.COUNTING) return createCountingRedisFilter(name, n, p, HashMethod.MD5, overwrite, database);
+        else if (filterTypes == FilterTypes.NORMAL) return createRedisFilter(name, n, p, HashMethod.MD5, overwrite, database);
+        else if (filterTypes == FilterTypes.POOL_CONFIG) return createRedisPoolFilter(name, n, p, HashMethod.MD5, overwrite, database);
+        else if (filterTypes == FilterTypes.SENTINEL_CONFIG) return createRedisSentinelFilter(name, n, p, HashMethod.MD5, overwrite, database);
+        else throw new IllegalArgumentException();
     }
 
     private BloomFilter<String> createSlaveFilter(String name, int n, double p, boolean overwrite) {
         // Only the normal Read Filter needs to know about slaves.
-        if (filterTypes == FilterTypes.NORMAL)
-            return createRedisFilterWithReadSlave(name, n, p, HashMethod.MD5, overwrite, host, slavePort);
+        if (filterTypes == FilterTypes.NORMAL) return createRedisFilterWithReadSlave(name, n, p, HashMethod.MD5, overwrite, host, slavePort);
         else return createFilter(name, n, p, overwrite);
 
     }
@@ -85,7 +75,7 @@ public class RedisBFTest {
 
 
     @Test
-    public void testSlaveReads() throws Exception{
+    public void testSlaveReads() throws Exception {
         int n = 1000;
         double p = 0.01;
 
@@ -233,10 +223,8 @@ public class RedisBFTest {
         BloomFilter<String> first = createFilter("I_m_in_Redis", 10_000, 0.01, true);
         first.add("42");
         BloomFilter<String> second;
-        if(filterTypes == FilterTypes.COUNTING)
-            second = ((CountingBloomFilterRedis<String>) first).toMemoryFilter();
-        else
-            second = ((BloomFilterRedis<String>) first).toMemoryFilter();
+        if (filterTypes == FilterTypes.COUNTING) second = ((CountingBloomFilterRedis<String>) first).toMemoryFilter();
+        else second = ((BloomFilterRedis<String>) first).toMemoryFilter();
         assertTrue(second.contains("42"));
     }
 
@@ -271,7 +259,8 @@ public class RedisBFTest {
         try {
             pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
             long end = System.nanoTime();
-            System.out.println("Concurrent Benchmark, " + opsPerThread + " ops * " + bfs.size() + " threads = " + opsPerThread * bfs.size() + " total ops: " + ((double) (end - start)) / 1000000 + " ms");
+            System.out.println("Concurrent Benchmark, " + opsPerThread + " ops * " + bfs.size() + " threads = " + opsPerThread * bfs.size() + " total ops: "
+                    + ((double) (end - start)) / 1000000 + " ms");
         } catch (InterruptedException e) {
             //...
         }
@@ -293,7 +282,20 @@ public class RedisBFTest {
         assertSame(pool, filter.config().pool());
     }
 
-    
+    @Test
+    public void testPool2() throws Exception {
+        BloomFilter<String> bf = createFilter("pooltest", 10_000, 0.01, true);
+
+        for (int i = 0; i < 10000; i++) {
+            bf.add("" + i);
+        }
+        bf.add("bf");
+
+        assertTrue(bf.contains("bf"));
+        assertTrue(bf.contains("199"));
+    }
+
+
     @Test
     public void testDatabase() throws Exception {
         final String filterName = "dbtest";
@@ -302,7 +304,7 @@ public class RedisBFTest {
         bfDb1.add("element1");
         assertTrue(bfDb1.contains("element1"));
         assertFalse(bfDb1.contains("element2"));
-        
+
         BloomFilter<String> bfDb2 = createFilter(filterName, 10_000, 0.01, true, 1);
         assertEquals(filterName, bfDb2.config().name());
         assertFalse(bfDb2.contains("element1"));

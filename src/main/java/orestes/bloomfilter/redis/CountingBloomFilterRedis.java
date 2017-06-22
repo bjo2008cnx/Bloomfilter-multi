@@ -15,11 +15,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * Uses regular key-value pairs for counting instead of a bitarray. This introduces a space overhead but allows
- * distribution of keys, thus increasing throughput. Pipelining can also be leveraged in this approach to minimize
- * network latency.
+ * 使用kv对来计数.  可以结合Pipelining 来提高性能
  *
- * @param <T> The type of the containing elements
+ * @param <T> 元素类型
  */
 public class CountingBloomFilterRedis<T> implements CountingBloomFilter<T> {
     protected final RedisKeys keys;
@@ -98,10 +96,7 @@ public class CountingBloomFilterRedis<T> implements CountingBloomFilter<T> {
                     p.watch(keys.COUNTS_KEY, keys.BITS_KEY);
                     Response<List<String>> hmget = p.hmget(keys.COUNTS_KEY, hashesString);
                     p.sync();
-                    counts = hmget.get()
-                        .stream()
-                        .map(o -> o != null ? Long.parseLong(o) : 0l)
-                        .collect(Collectors.toList());
+                    counts = hmget.get().stream().map(o -> o != null ? Long.parseLong(o) : 0l).collect(Collectors.toList());
                 } else {
                     return Collections.min(counts);
                 }
@@ -114,7 +109,7 @@ public class CountingBloomFilterRedis<T> implements CountingBloomFilter<T> {
         return pool.allowingSlaves().safelyReturn(jedis -> {
             String[] hashesString = encode(hash(toBytes(element)));
             List<String> hmget = jedis.hmget(keys.COUNTS_KEY, hashesString);
-            return hmget.stream().mapToLong(i -> i == null? 0L: Long.valueOf(i)).min().orElse(0L);
+            return hmget.stream().mapToLong(i -> i == null ? 0L : Long.valueOf(i)).min().orElse(0L);
         });
     }
 
@@ -135,7 +130,8 @@ public class CountingBloomFilterRedis<T> implements CountingBloomFilter<T> {
 
     @Override
     public boolean contains(byte[] element) {
-        return bloom.isAllSet(hash(element));
+        int[] hash = hash(element);
+        return bloom.isAllSet(hash);
     }
 
 
@@ -148,13 +144,20 @@ public class CountingBloomFilterRedis<T> implements CountingBloomFilter<T> {
         return bloom.asBitSet();
     }
 
-    public byte[] getBytes() { return bloom.toByteArray(); }
+    public byte[] getBytes() {
+        return bloom.toByteArray();
+    }
 
     @Override
     public FilterBuilder config() {
         return config;
     }
 
+    /**
+     * 转换成内存形式
+     *
+     * @return
+     */
     public CountingBloomFilterMemory<T> toMemoryFilter() {
         CountingBloomFilterMemory<T> filter = new CountingBloomFilterMemory<>(config().clone());
         filter.getBloomFilter().setBitSet(getBitSet());
@@ -193,8 +196,7 @@ public class CountingBloomFilterRedis<T> implements CountingBloomFilter<T> {
     }
 
     private static String encode(int value) {
-        return SafeEncoder.encode(
-            new byte[]{(byte) (value >>> 24), (byte) (value >>> 16), (byte) (value >>> 8), (byte) value});
+        return SafeEncoder.encode(new byte[]{(byte) (value >>> 24), (byte) (value >>> 16), (byte) (value >>> 8), (byte) value});
     }
 
 

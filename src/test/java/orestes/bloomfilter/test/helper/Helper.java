@@ -19,8 +19,8 @@ import java.util.Set;
 public class Helper {
     // Jedis automatically translates any address which is known to refer to a local IP to the system's hostname.
     // All Redis servers must listen on all networks (bind 0.0.0.0 in redis conf) to workaround this.
-    public static String host = "127.0.0.1";
-    public static int port = 6379;
+    public static String host = "10.12.64.189"; //127.0.0.1
+    public static int port = 6301; //6379
     public static int slavePort = 6380;
     private static int connections = 10;
     

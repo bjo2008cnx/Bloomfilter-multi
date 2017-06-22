@@ -17,12 +17,13 @@ import java.util.UUID;
 @Ignore
 public class RedisTest {
 
-    private static String IP = "192.168.44.131";
+    public static final int PORT = 6301;
+    private static String IP = "10.12.64.189";
 
     @Ignore
     @Test
     public void testOverflow() {
-        Jedis jedis = new Jedis("localhost");
+        Jedis jedis = new Jedis(IP,6301);
         Pipeline p = jedis.pipelined();
         p.multi();
         for (int i = 0; i < 10000; i++) {
@@ -35,7 +36,7 @@ public class RedisTest {
 
     @Test
     public void jedisTest() {
-        Jedis jedis = jedis();
+        Jedis jedis = new Jedis(IP,6301);
 
         jedis.lpush("meineprivateliste", UUID.randomUUID().toString());
         System.out.println(jedis.lrange("meineprivateliste", 0, -1));
@@ -187,7 +188,7 @@ public class RedisTest {
     @Test
     public void sharding() {
         List<JedisShardInfo> shards = new ArrayList<JedisShardInfo>();
-        JedisShardInfo si = new JedisShardInfo(IP, 6380);
+        JedisShardInfo si = new JedisShardInfo(IP, 6301);
         shards.add(si);
         ShardedJedis jedis = new ShardedJedis(shards);
         jedis.set("a", "brakdabra");
@@ -196,7 +197,7 @@ public class RedisTest {
 
 
     private Jedis jedis() {
-        return new Jedis(IP, 6379);
+        return new Jedis(IP, PORT);
     }
 
 }

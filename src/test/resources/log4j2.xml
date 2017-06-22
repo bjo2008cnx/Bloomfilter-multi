@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration packages="orestes">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <Filters>
+                <LoggerNameRegexFilter pattern="com\.weimob\.o2o\..*dao.*" onMatch="DENY" onMismatch="NEUTRAL"/>
+            </Filters>
+            <PatternLayout pattern="%date{yyyy-MM-dd HH:mm:ss.SSS} %level [%thread][%c{2}:%line] - %msg%n"/>
+        </Console>
+
+        <RollingFile name="infoLog" fileName="@LOG_PATH@/serviceLogs/log.log"
+                     filePattern="@LOG_PATH@/serviceLogs/%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="%date{yyyy-MM-dd HH:mm:ss.SSS} %level [%thread][%c{2}:%line] - %msg%n"/>
+            <ThresholdFilter level="@LOGLEVEL@" onMatch="ACCEPT" onMismatch="DENY"/>
+            <SizeBasedTriggeringPolicy size="50M"/>
+        </RollingFile>
+
+        <File name="errorLog" fileName="@LOG_PATH@/serviceLogs/error.log" append="true">
+            <ThresholdFilter level="error" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="%date{yyyy-MM-dd HH:mm:ss.SSS} %level [%thread][%c{2}:%line] - %msg%n"/>
+        </File>
+
+        <RollingFile name="taskInfoLog" fileName="@LOG_PATH@/serviceLogs/tasks/log.log"
+                     filePattern="@LOG_PATH@/serviceLogs/tasks/%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="%date{yyyy-MM-dd HH:mm:ss.SSS} %level [%thread][%c{2}:%line] - %msg%n"/>
+            <ThresholdFilter level="@LOGLEVEL@" onMatch="ACCEPT" onMismatch="DENY"/>
+            <SizeBasedTriggeringPolicy size="50M"/>
+        </RollingFile>
+
+        <RollingFile name="subscribeLog" fileName="@LOG_PATH@/serviceLogs/subscribe/log.log"
+                     filePattern="@LOG_PATH@/serviceLogs/subscribe/%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="%date{yyyy-MM-dd HH:mm:ss.SSS} %level [%thread][%c{2}:%line] - %msg%n"/>
+            <ThresholdFilter level="@LOGLEVEL@" onMatch="ACCEPT" onMismatch="DENY"/>
+            <SizeBasedTriggeringPolicy size="50M"/>
+        </RollingFile>
+
+        <RollingFile name="wechatAuthLog" fileName="@LOG_PATH@/serviceLogs/wechatAuth/log.log"
+                     filePattern="@LOG_PATH@/serviceLogs/wechatAuth/%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="%date{yyyy-MM-dd HH:mm:ss.SSS} %level [%thread][%c{2}:%line] - %msg%n"/>
+            <ThresholdFilter level="@LOGLEVEL@" onMatch="ACCEPT" onMismatch="DENY"/>
+            <SizeBasedTriggeringPolicy size="50M"/>
+        </RollingFile>
+
+        <RollingFile name="scanLog" fileName="@LOG_PATH@/serviceLogs/scan/log.log"
+                     filePattern="@LOG_PATH@/serviceLogs/scan/%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="%date{yyyy-MM-dd HH:mm:ss.SSS} %level [%thread][%c{2}:%line] - %msg%n"/>
+            <ThresholdFilter level="@LOGLEVEL@" onMatch="ACCEPT" onMismatch="DENY"/>
+            <SizeBasedTriggeringPolicy size="50M"/>
+        </RollingFile>
+    </Appenders>
+
+    <loggers>
+        <logger name="com.weimob.sst" level="debug">
+            <appender-ref ref="Console"/>
+        </logger>
+
+        <root level="INFO">
+            <appender-ref ref="Console"/>
+            <appender-ref ref="infoLog"/>
+            <appender-ref ref="errorLog"/>
+        </root>
+    </loggers>
+</Configuration>
