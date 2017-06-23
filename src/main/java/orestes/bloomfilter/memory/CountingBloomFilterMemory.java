@@ -15,9 +15,11 @@ public class CountingBloomFilterMemory<T> implements CountingBloomFilter<T> {
     protected FilterBuilder config;
     protected BloomFilterMemory<T> filter;
     protected BitSet counts;
-    protected transient Runnable overflowHandler = () -> { };
+    protected transient Runnable overflowHandler = () -> {
+    };
 
-    protected CountingBloomFilterMemory() { }
+    protected CountingBloomFilterMemory() {
+    }
 
 
     public CountingBloomFilterMemory(FilterBuilder config) {
@@ -44,7 +46,9 @@ public class CountingBloomFilterMemory<T> implements CountingBloomFilter<T> {
 
     @Override
     public synchronized long removeAndEstimateCountRaw(byte[] element) {
-        if (!contains(element)) { return 0; }
+        if (!contains(element)) {
+            return 0;
+        }
 
         long min = Long.MAX_VALUE;
         for (int hash : hash(element)) {
@@ -58,10 +62,10 @@ public class CountingBloomFilterMemory<T> implements CountingBloomFilter<T> {
 
 
     /**
-     * Increment the internal counter upon insertion of new elements.
+     * 加入元素时增加计数
      *
-     * @param index position at which to increase
-     * @return the new counter value
+     * @param index 待增加计数的bit的位置
+     * @return 新的计数值
      */
     protected long increment(int index) {
         int low = index * config().countingBits();
@@ -85,8 +89,7 @@ public class CountingBloomFilterMemory<T> implements CountingBloomFilter<T> {
             pos++;
         }
 
-        // If the counter overflowed, call the handler
-        // and set the counter to the maximum value
+        //如果计数器溢出,调用 handler并设置计数器为最大值
         if (!incremented) {
             overflowHandler.run();
             for (int i = (high - 1); i >= low; i--) {
@@ -115,7 +118,7 @@ public class CountingBloomFilterMemory<T> implements CountingBloomFilter<T> {
     }
 
     /**
-     * Decrements the internal counter upon deletion and unsets the Bloom filter bit if necessary.
+     * 删除时减少计数并unsets如果计数为0
      *
      * @param index position at which to decrease
      * @return the new counter value
@@ -161,13 +164,11 @@ public class CountingBloomFilterMemory<T> implements CountingBloomFilter<T> {
 
     @Override
     public boolean union(BloomFilter<T> other) {
-        //TODO
         throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean intersect(BloomFilter<T> other) {
-        //TODO
         throw new UnsupportedOperationException();
     }
 
@@ -202,7 +203,9 @@ public class CountingBloomFilterMemory<T> implements CountingBloomFilter<T> {
             e.printStackTrace();
         }
         o.filter = (BloomFilterMemory<T>) this.filter.clone();
-        if (this.counts != null) { o.counts = (BitSet) this.counts.clone(); }
+        if (this.counts != null) {
+            o.counts = (BitSet) this.counts.clone();
+        }
         o.config = this.config.clone();
         return o;
     }
@@ -226,14 +229,24 @@ public class CountingBloomFilterMemory<T> implements CountingBloomFilter<T> {
 
     @Override
     public synchronized boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (!(o instanceof CountingBloomFilterMemory)) { return false; }
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof CountingBloomFilterMemory)) {
+            return false;
+        }
 
         CountingBloomFilterMemory that = (CountingBloomFilterMemory) o;
 
-        if (config != null ? !config.isCompatibleTo(that.config) : that.config != null) { return false; }
-        if (counts != null ? !counts.equals(that.counts) : that.counts != null) { return false; }
-        if (filter != null ? !filter.equals(that.filter) : that.filter != null) { return false; }
+        if (config != null ? !config.isCompatibleTo(that.config) : that.config != null) {
+            return false;
+        }
+        if (counts != null ? !counts.equals(that.counts) : that.counts != null) {
+            return false;
+        }
+        if (filter != null ? !filter.equals(that.filter) : that.filter != null) {
+            return false;
+        }
 
         return true;
     }
@@ -243,10 +256,10 @@ public class CountingBloomFilterMemory<T> implements CountingBloomFilter<T> {
         this.overflowHandler = callback;
     }
 
-    private void readObject(ObjectInputStream stream)
-        throws IOException, ClassNotFoundException {
+    private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
         stream.defaultReadObject();
-        this.overflowHandler = () -> {};
+        this.overflowHandler = () -> {
+        };
     }
 
     public BloomFilterMemory<T> getBloomFilter() {

@@ -14,10 +14,10 @@ import java.util.BitSet;
 public class BloomFilterConverter {
 
     /**
-     * Converts a normal or Counting Bloom filter to a JSON representation of a non-counting Bloom filter.
+     * 转换 non-counting Bloom filter.为JSon格式
      *
-     * @param source the Bloom filter to convert
-     * @return the JSON representation of the Bloom filter
+     * @param source to convert
+     * @return the JSON
      */
     public static JsonElement toJson(BloomFilter<?> source) {
         JsonObject root = new JsonObject();
@@ -36,10 +36,10 @@ public class BloomFilterConverter {
     }
 
     /**
-     * Converts a normal or Counting Bloom filter to a Base64 encoded string containing its bits.
+     * 转换 Bloom filter 为包含bits的bsse64 格式的字符串
      *
-     * @param source the Bloom filter to convert
-     * @return the Base64 representation of the Bloom filter
+     * @param source  to convert
+     * @return bsse64 格式的字符串
      */
     public static String toBase64(BloomFilter<?> source) {
         return toBase64(source.getBitSet().toByteArray());
@@ -50,21 +50,21 @@ public class BloomFilterConverter {
     }
 
     /**
-     * Constructs a Bloom filter from its JSON representation.
+     * 从json中加载
      *
-     * @param source the the JSON source
-     * @return the constructed Bloom filter
+     * @param source JSON 串
+     * @return 转换后的Bloom filter
      */
     public static BloomFilter<String> fromJson(JsonElement source) {
         return fromJson(source, String.class);
     }
 
     /**
-     * Constructs a Bloom filter from its JSON representation
+     * 从json中加载
      *
-     * @param source the JSON source
-     * @param type   The class of the generic type
-     * @param <T>    Generic type parameter of the Bloom filter
+     * @param source JSON 串
+     * @param type  类型
+     * @param <T>  Bloom filter中元素的类型
      * @return the Bloom filter
      */
     public static <T> BloomFilter<T> fromJson(JsonElement source, Class<T> type) {

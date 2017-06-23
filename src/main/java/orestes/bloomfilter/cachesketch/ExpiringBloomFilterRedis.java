@@ -34,7 +34,7 @@ public class ExpiringBloomFilterRedis<T> extends CountingBloomFilterRedis<T> imp
     }
 
     /**
-     * @return current timestamp in second
+     * @return 当前时间戳(秒)
      */
     private Long now() {
         return clock.instant().toEpochMilli();

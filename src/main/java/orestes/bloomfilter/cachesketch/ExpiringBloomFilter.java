@@ -9,45 +9,44 @@ import java.util.stream.Collectors;
 
 
 /**
- * Tracks a mapping from objects to expirations and a Bloom filter of objects that are automatically removed after
- * expiration(obj).
+ * 可过期的计数BF
  *
  */
 public interface ExpiringBloomFilter<T> extends CountingBloomFilter<T> {
 
     /**
-     * Determines whether a given object is no-expired
+     * 判断是否被缓存(存在且未过期)
      *
-     * @param element the element (or its id)
-     * @return <code>true</code> if the element is non-expired
+     * @param element 元素(或元素的 id)
+     * @return <code>true</code> 是否被缓存
      */
     boolean isCached(T element);
 
     /**
-     * Return the expiration timestamp of an object
+     * 获取元素的过期时间戳
      *
-     * @param element the element (or its id)
-     * @param unit    the time unit of the returned ttl
-     * @return the remaining ttl
+     * @param element 元素(或元素的 id)
+     * @param unit    时间单位
+     * @return 过期时间戳
      */
     Long getRemainingTTL(T element, TimeUnit unit);
 
     /**
-     * Return the expiration timestamps of the given object
+     * 获取元素的过期时间戳
      *
-     * @param elements elements to check
-     * @param unit    the time unit of the returned ttl
-     * @return the remaining ttl
+     * @param elements 元素
+     * @param unit    时间单位
+     * @return 过期时间戳
      */
     default List<Long> getRemainingTTLs(List<T> elements, TimeUnit unit){
         return elements.stream().map(el -> getRemainingTTL(el, unit)).collect(Collectors.toList());
     }
 
     /**
-     * Reports a read on element that is to be cached for a certain ttl
+     * Reports a read on element that is to be cached for a certain ttl[TD]
      *
-     * @param element the element (or its id)
-     * @param TTL     the TTL which the element is cached
+     * @param element 元素(或元素的 id)
+     * @param TTL     时间单位
      * @param unit    the time unit of the provided ttl
      */
     void reportRead(T element, long TTL, TimeUnit unit);
@@ -55,16 +54,16 @@ public interface ExpiringBloomFilter<T> extends CountingBloomFilter<T> {
     /**
      * Reports a write on an object, adding it to the underlying Bloom filter for the remaining ttl
      *
-     * @param element the element (or its id)
-     * @param unit the time unit of the returned ttl
-     * @return the remaining TTL, if the object was still cached, else <code>null</code>
+     * @param element 元素(或元素的 id)
+     * @param unit 时间单位
+     * @return 剩余过期时间。如果已过期，返回<code>null</code>
      */
     Long reportWrite(T element, TimeUnit unit);
 
     /**
      * Reports a write.
      *
-     * @param element the element (or its id)
+     * @param element 元素(或元素的 id)
      * @return <code>true</code>, if the elements needs invalidation
      */
     default boolean reportWrite(T element) {
