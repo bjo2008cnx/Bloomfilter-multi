@@ -171,13 +171,11 @@ public class CountingBloomFilterRedis<T> implements CountingBloomFilter<T> {
 
     @Override
     public boolean union(BloomFilter<T> other) {
-        //TODO
         throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean intersect(BloomFilter<T> other) {
-        //TODO
         throw new UnsupportedOperationException();
     }
 

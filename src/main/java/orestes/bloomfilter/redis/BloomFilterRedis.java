@@ -12,13 +12,9 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * A persistent bloom filter backed by the Redis key value store. Internally it operates on the <i>setbit</i> and
- * <i>getbit</i> operations of Redis. If you need to remove elements from the bloom filter, please use a counting bloom
- * filter, e.g. {@link CountingBloomFilterRedis}. The performance of this data structure is very good, as operations are
- * grouped into fast transactions, minimizing the network overhead of all bloom filter operations to one round trip to
- * Redis.
+ * 使用redis的<i>setbit</i> 和<i>getbit</i> 操作.  因内部使用批量操作，因而性能非常好
  *
- * @param <T> The type of the containing elements
+ * @param <T> 元素类型
  */
 public class BloomFilterRedis<T> implements BloomFilter<T> {
     private final RedisKeys keys;
@@ -33,10 +29,8 @@ public class BloomFilterRedis<T> implements BloomFilter<T> {
         this.pool = builder.pool();
         this.bloom = new RedisBitSet(pool, keys.BITS_KEY, builder.size());
         this.config = keys.persistConfig(pool, builder);
-        if (builder.overwriteIfExists())
-            this.clear();
+        if (builder.overwriteIfExists()) this.clear();
     }
-
 
 
     @Override
@@ -133,13 +127,11 @@ public class BloomFilterRedis<T> implements BloomFilter<T> {
 
     @Override
     public boolean union(BloomFilter<T> other) {
-        //TODO
         throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean intersect(BloomFilter<T> other) {
-        //TODO
         throw new UnsupportedOperationException();
     }
 
@@ -154,8 +146,9 @@ public class BloomFilterRedis<T> implements BloomFilter<T> {
     }
 
     /**
-     * Returns the underlying RedisBitSet implementation of this RedisBloomFilter
-     * @return The underlying RedisBitSet
+     * 返回redisBitSet
+     *
+     * @return 返回redisBitSet
      */
     public RedisBitSet getRedisBitSet() {
         return bloom;
