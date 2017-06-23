@@ -5,12 +5,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Represents a Counting Bloom Filter, which in contrast to a normal Bloom filter also allow removal.
+ * 可计数的bf，允许删除元素
  */
 public interface CountingBloomFilter<T> extends BloomFilter<T> {
 
     /**
-     * @return the number of bits used for counting
+     * @return 用于计数的bit位数
      */
     public default int getCountingBits() {
         return config().countingBits();
@@ -23,20 +23,20 @@ public interface CountingBloomFilter<T> extends BloomFilter<T> {
     }
 
     /**
-     * Removes the object from the counting bloom filter.
+     * 删除元素
      *
-     * @param element object to be deleted
-     * @return {@code true} if the element is not present after removal
+     * @param element 待删除元素
+     * @return {@code true} 删除元素后元素对应的bits是否都为0
      */
     public default boolean removeRaw(byte[] element) {
         return removeAndEstimateCountRaw(element) <= 0;
     }
 
     /**
-     * Removes the object from the counting bloom filter.
+     * 删除元素
      *
-     * @param element object to be deleted
-     * @return {@code true} if the element is not present after removal
+     * @param element 待删除元素
+     * @return {@code true}  删除元素后元素对应的bits是否都为0
      */
     public default boolean remove(T element) {
         return removeRaw(toBytes(element));
@@ -44,68 +44,62 @@ public interface CountingBloomFilter<T> extends BloomFilter<T> {
 
 
     /**
-     * Removes the objects from the counting bloom filter.
+     * 删除元素
      *
-     * @param elements objects to be deleted
-     * @return a list of booleans indicating for each element, whether it was removed
+     * @param elements 待删除元素
+     * @return 删除元素后元素对应的bits是否都为0的结果列表
      */
     public default List<Boolean> removeAll(Collection<T> elements) {
         return elements.stream().map(this::remove).collect(Collectors.toList());
     }
 
     /**
-     * Return the estimated count for an element using the Mininum Selection algorithm (i.e. by choosing the minimum
-     * counter for the given element). This estimation is biased, as it doest not consider how full the filter is, but
-     * performs best in practice. The underlying theoretical foundation are spectral Bloom filters, see:
-     * http://theory.stanford.edu/~matias/papers/sbf_thesis.pdf
+     * 返回使用最小选择算法情况下元素的估算计数(如：.选择最小计数器).
+     * 这个估计有点偏向, 没有考虑bf是否已满，但在实践中表现非常好
+     * 其理论基础是 spectral Bloom filters, 参考: http://theory.stanford.edu/~matias/papers/sbf_thesis.pdf
      *
-     * @param element element to query
-     * @return estimated count of the element
+     * @param element 待查询的元素
+     * @return 估计的计数
      */
     public long getEstimatedCount(T element);
 
     /**
-     * Adds an element and returns its estimated frequency after the insertion (i.e. the number of times the element was
-     * added to the filter).
-     *
-     * @param element element to add
-     * @return estimated frequency of the element after insertion
+     * 添加一个元素并返回元素被添加的次数
+     * @param element 待添加的元素
+     * @return 元素被添加的次数
      */
     public long addAndEstimateCountRaw(byte[] element);
 
     /**
-     * Adds an element and returns its estimated frequency after the insertion (i.e. the number of times the element was
-     * added to the filter).
+     * 添加一个元素并返回元素被添加的次数
      *
-     * @param element element to add
-     * @return estimated frequency of the element after insertion
+     * @param element 待添加的元素
+     * @return 元素被添加的次数
      */
     public default long addAndEstimateCount(T element) {
         return addAndEstimateCountRaw(toBytes(element));
     }
 
     /**
-     * Removes an element and returns its estimated frequency after the insertion (i.e. the number of times the element
-     * was added to the filter).
+     * 删除一个元素并返回元素被添加的次数
      *
-     * @param element element to remove
-     * @return estimated frequency of the element after deletion
+     * @param element 待删除的元素
+     * @return 元素被添加的次数
      */
     public long removeAndEstimateCountRaw(byte[] element);
 
     /**
-     * Removes an element and returns its estimated frequency after the insertion (i.e. the number of times the element
-     * was added to the filter).
+     * 删除一个元素并返回元素被添加的次数
      *
-     * @param element element to remove
-     * @return estimated frequency of the element after deletion
+     * @param element 待删除的元素
+     * @return 元素被添加的次数
      */
     public default long removeAndEstimateCount(T element) {
         return removeAndEstimateCountRaw(toBytes(element));
     }
 
     /**
-     * @return copy of the filter.
+     * @return clone
      */
     public CountingBloomFilter<T> clone();
 
