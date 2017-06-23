@@ -2,12 +2,7 @@ package orestes.bloomfilter;
 
 import orestes.bloomfilter.HashProvider.HashFunction;
 import orestes.bloomfilter.HashProvider.HashMethod;
-import orestes.bloomfilter.memory.BloomFilterMemory;
-import orestes.bloomfilter.memory.CountingBloomFilter16;
-import orestes.bloomfilter.memory.CountingBloomFilter32;
-import orestes.bloomfilter.memory.CountingBloomFilter64;
-import orestes.bloomfilter.memory.CountingBloomFilter8;
-import orestes.bloomfilter.memory.CountingBloomFilterMemory;
+import orestes.bloomfilter.memory.*;
 import orestes.bloomfilter.redis.BloomFilterRedis;
 import orestes.bloomfilter.redis.CountingBloomFilterRedis;
 import orestes.bloomfilter.redis.helper.RedisPool;
@@ -21,7 +16,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 /**
- * Builder for Bloom Filters.
+ * bf 构造器
  */
 public class FilterBuilder implements Cloneable, Serializable {
     private boolean redisBacked = false;
@@ -45,27 +40,21 @@ public class FilterBuilder implements Cloneable, Serializable {
     private RedisPool pool;
     private int database = Protocol.DEFAULT_DATABASE;
 
-    /**
-     * Constructs a new builder for Bloom filters and counting Bloom filters.
-     */
     public FilterBuilder() {
     }
 
     /**
-     * Constructs a new Bloom Filter Builder by specifying the expected size of the filter and the tolerable false
-     * positive probability. The size of the BLoom filter in in bits and the optimal number of hash functions will be
-     * inferred from this.
+     * 指定bf的元素个数和可容忍的错误率,根据bf的大小自动设置hash函数个数
      *
-     * @param expectedElements         expected elements in the filter
-     * @param falsePositiveProbability tolerable false positive probability
+     * @param expectedElements         bf大小
+     * @param falsePositiveProbability 可容忍的错误率
      */
     public FilterBuilder(int expectedElements, double falsePositiveProbability) {
         this.expectedElements(expectedElements).falsePositiveProbability(falsePositiveProbability);
     }
 
     /**
-     * Constructs a new Bloom Filter Builder using the specified size in bits and the specified number of hash
-     * functions.
+     * 指定bf大小和hash函数个数
      *
      * @param size   bit size of the Bloom filter
      * @param hashes number of hash functions to use
@@ -75,11 +64,10 @@ public class FilterBuilder implements Cloneable, Serializable {
     }
 
     /**
-     * Sets the number of expected elements. In combination with the tolerable false positive probability, this is used
-     * to infer the optimal size and optimal number of hash functions of the filter.
+     * 设定元素个数. 根据容忍的失败率自动计算大小和hash函数个数
      *
-     * @param expectedElements number of expected elements.
-     * @return the modified FilterBuilder (fluent interface)
+     * @param expectedElements 元素个数
+     * @return 修改后的对象
      */
     public FilterBuilder expectedElements(int expectedElements) {
         this.expectedElements = expectedElements;
@@ -87,10 +75,10 @@ public class FilterBuilder implements Cloneable, Serializable {
     }
 
     /**
-     * Sets the size of the filter in bits.
+     * 设置bits的大小
      *
-     * @param size size of the filter in bits
-     * @return the modified FilterBuilder (fluent interface)
+     * @param size bits大小
+     * @return 修改后的对象
      */
     public FilterBuilder size(int size) {
         this.size = size;
@@ -98,11 +86,10 @@ public class FilterBuilder implements Cloneable, Serializable {
     }
 
     /**
-     * Sets the tolerable false positive probability. In combination with the number of expected elements, this is used
-     * to infer the optimal size and optimal number of hash functions of the filter.
+     * 设置可容忍的失败率
      *
      * @param falsePositiveProbability the tolerable false
-     * @return the modified FilterBuilder (fluent interface)
+     * @return 修改后的对象
      */
     public FilterBuilder falsePositiveProbability(double falsePositiveProbability) {
         this.falsePositiveProbability = falsePositiveProbability;
@@ -110,10 +97,10 @@ public class FilterBuilder implements Cloneable, Serializable {
     }
 
     /**
-     * Set the number of hash functions to be used.
+     * 设置hash函数个数
      *
-     * @param numberOfHashes number of hash functions used by the filter.
-     * @return the modified FilterBuilder (fluent interface)
+     * @param numberOfHashes hash函数个数
+     * @return 修改后的对象
      */
     public FilterBuilder hashes(int numberOfHashes) {
         this.hashes = numberOfHashes;
@@ -121,11 +108,10 @@ public class FilterBuilder implements Cloneable, Serializable {
     }
 
     /**
-     * Sets the number of bits used for counting in case of a counting Bloom filter. For non-counting Bloom filters this
-     * setting has no effect. <p><b>Default</b>: 16</p>
+     * 设置用于计数的bits个数
      *
-     * @param countingBits Number of counting bits used by the counting Bloom filter
-     * @return the modified FilterBuilder (fluent interface)
+     * @param countingBits 用于计数的bits个数
+     * @return 修改后的对象
      */
     public FilterBuilder countingBits(int countingBits) {
         this.countingBits = countingBits;
@@ -133,12 +119,10 @@ public class FilterBuilder implements Cloneable, Serializable {
     }
 
     /**
-     * Sets the name of the Bloom filter. If a redis-backed Bloom filter with the provided name exists and it is
-     * compatible to this FilterBuilder configuration, it will be loaded and used. This behaviour can be changed by
-     * {@link #overwriteIfExists(boolean)}. <p><b>Default</b>: ""</p>
+     * 设置bf名称 ，如果在redis中已存在，并且配置相同，已存在的bf将被使用并返回,可使用{@link #overwriteIfExists(boolean)}进行修改
      *
      * @param name The name of the filter
-     * @return the modified FilterBuilder (fluent interface)
+     * @return 修改后的对象
      */
     public FilterBuilder name(String name) {
         this.name = name;
@@ -146,10 +130,10 @@ public class FilterBuilder implements Cloneable, Serializable {
     }
 
     /**
-     * Sets a password authentication for Redis.
+     *
      *
      * @param password The Redis PW
-     * @return the modified FilterBuilder (fluent interface)
+     * @return 修改后的对象
      */
     public FilterBuilder password(String password) {
         this.password = password;
@@ -157,10 +141,10 @@ public class FilterBuilder implements Cloneable, Serializable {
     }
 
     /**
-     * Sets an existing RedisPool for reuse
+     * 设置连接池
      *
      * @param pool The RedisPool
-     * @return the modified FilterBuilder (fluent interface)
+     * @return 修改后的对象
      */
     public FilterBuilder pool(RedisPool pool) {
         this.redisBacked(true);
@@ -169,10 +153,10 @@ public class FilterBuilder implements Cloneable, Serializable {
     }
 
     /**
-     * Instructs the FilterBuilder to build a Redis-Backed Bloom filters. <p><b>Default</b>: <tt>false</tt></p>
+     * 设置是否使用redis作为存储,默认false
      *
-     * @param redisBacked a boolean indicating whether redis should be used
-     * @return the modified FilterBuilder (fluent interface)
+     * @param redisBacked 是否使用redis作为存储
+     * @return 修改后的对象
      */
     public FilterBuilder redisBacked(boolean redisBacked) {
         this.redisBacked = redisBacked;
@@ -180,10 +164,9 @@ public class FilterBuilder implements Cloneable, Serializable {
     }
 
     /**
-     * Sets the host of the backing Redis instance. <p><b>Default</b>: localhost</p>
-     *
+     * 设置host
      * @param host the Redis host
-     * @return the modified FilterBuilder (fluent interface)
+     * @return 修改后的对象
      */
     public FilterBuilder redisHost(String host) {
         this.redisBacked = true;
@@ -192,10 +175,10 @@ public class FilterBuilder implements Cloneable, Serializable {
     }
 
     /**
-     * Sets the port of the backing Redis instance. <p><b>Default</b>: 6379</p>
+     * 缺省为 6379
      *
      * @param port the Redis port
-     * @return the modified FilterBuilder (fluent interface)
+     * @return 修改后的对象
      */
     public FilterBuilder redisPort(int port) {
         this.redisBacked = true;
@@ -205,10 +188,10 @@ public class FilterBuilder implements Cloneable, Serializable {
 
 
     /**
-     * Sets the number of connections to use for Redis. <p><b>Default</b>: 10</p>
+     * 设置redis的最大连接数，默认: 10 [TD]
      *
-     * @param numConnections the number of connections to use for Redis
-     * @return the modified FilterBuilder (fluent interface)
+     * @param numConnections redis的最大连接数
+     * @return 修改后的对象
      */
     public FilterBuilder redisConnections(int numConnections) {
         this.redisBacked = true;
@@ -217,10 +200,10 @@ public class FilterBuilder implements Cloneable, Serializable {
     }
 
     /**
-     * Enables or disables SSL connection to Redis. <p><b>Default</b>: false</p>
+     * 是否使用ssl连接到redis ，缺省为false
      *
-     * @param ssl enables or disables SSL connection to Redis
-     * @return the modified FilterBuilder (fluent interface)
+     * @param ssl 是否使用ssl
+     * @return 修改后的对象
      */
     public FilterBuilder redisSsl(boolean ssl) {
         this.redisBacked = true;
@@ -229,11 +212,10 @@ public class FilterBuilder implements Cloneable, Serializable {
     }
 
     /**
-     * Sets whether any existing Bloom filter with same name should be overwritten in Redis. <p><b>Default</b>:
-     * <tt>false</tt></p>
+     * 如果在redis中相同name的已存在，是否覆盖
      *
-     * @param overwrite boolean indicating whether to overwrite any existing filter with the same name
-     * @return the modified FilterBuilder (fluent interface)
+     * @param overwrite 是否覆盖
+     * @return 修改后的对象
      */
     public FilterBuilder overwriteIfExists(boolean overwrite) {
         this.overwriteIfExists = overwrite;
@@ -241,15 +223,12 @@ public class FilterBuilder implements Cloneable, Serializable {
     }
 
     /**
-     * Adds a read slave to speed up reading access (e.g. contains or getEstimatedCount) to normal and counting
-     * Redis-backed Bloom filters. The read slave has to be a slave of the main Redis instance (this can be done in the
-     * redis-cli using the SLAVEOF command). This setting might cause stale reads since Redis replication is
-     * asynchronous. However anecdotally, in our experiments, we were unable to read any stale data - the replication
-     * lag between both Redis instances was small than one round-trip time to Redis.
+     * 添加redis slave以加快读的速度 (如：contains 或 getEstimatedCount 操作)  Slave节点必须在redis中是实例的从库 (可通过redis-cli 的 SLAVEOF 命令)设置。
+     * 因redis的同步是异步的，有可能从从库读到过期数据
      *
-     * @param host host of the Redis read slave
-     * @param port port of the Redis read slave
-     * @return the modified FilterBuilder (fluent interface)
+     * @param host host of Redis slave
+     * @param port port of Redis slave
+     * @return 修改后的对象
      */
     public FilterBuilder addReadSlave(String host, int port) {
         slaves.add(new SimpleEntry<>(host, port));
@@ -258,13 +237,10 @@ public class FilterBuilder implements Cloneable, Serializable {
 
 
     /**
-     * Sets the method used to generate hash values. Possible hash methods are documented in the corresponding enum
-     * {@link HashProvider.HashMethod}. <p><b>Default</b>: MD5</p>
-     * <p>
-     * For the generation of hash values the String representation of objects is used.
+     * 设置hash算法，应使用HashProvider中的{@link HashProvider.HashMethod}枚举值.。缺省为MD5
      *
      * @param hashMethod the method used to generate hash values
-     * @return the modified FilterBuilder (fluent interface)
+     * @return 修改后的对象
      */
     public FilterBuilder hashFunction(HashMethod hashMethod) {
         this.hashMethod = hashMethod;
@@ -273,10 +249,10 @@ public class FilterBuilder implements Cloneable, Serializable {
     }
 
     /**
-     * Uses a given custom hash function.
+     * 指定hash函数
      *
      * @param hf the custom hash function
-     * @return the modified FilterBuilder (fluent interface)
+     * @return 修改后的对象
      */
     public FilterBuilder hashFunction(HashFunction hf) {
         this.hashFunction = hf;
@@ -284,10 +260,10 @@ public class FilterBuilder implements Cloneable, Serializable {
     }
 
     /**
-     * Use a given database number.
+     * 指定数据库数量[TD]
      *
      * @param database number
-     * @return the modified FilterBuilder (fluent interface)
+     * @return 修改后的对象
      */
     public FilterBuilder database(int database) {
         this.database = database;
@@ -297,13 +273,12 @@ public class FilterBuilder implements Cloneable, Serializable {
     public int database() {
         return database;
     }
-    
+
     /**
-     * Constructs a Bloom filter using the specified parameters and computing missing parameters if possible (e.g. the
-     * optimal Bloom filter bit size).
+     * 构建对象 ，自动计算缺失的参数 (如： bit size).
      *
-     * @param <T> the type of element contained in the Bloom filter.
-     * @return the constructed Bloom filter
+     * @param <T> 元素类型.
+     * @return Bloomfilter实例
      */
     public <T> BloomFilter<T> buildBloomFilter() {
         complete();
@@ -315,9 +290,8 @@ public class FilterBuilder implements Cloneable, Serializable {
     }
 
     /**
-     * Constructs a Counting Bloom filter using the specified parameters and by computing missing parameters if possible
-     * (e.g. the optimal Bloom filter bit size).
      *
+     * 构建对象 ，自动计算缺失的参数 (如： bit size).
      * @param <T> the type of element contained in the Counting Bloom filter.
      * @return the constructed Counting Bloom filter
      */
@@ -341,22 +315,29 @@ public class FilterBuilder implements Cloneable, Serializable {
     }
 
     /**
-     * Checks if all necessary parameters were set and tries to infer optimal parameters (e.g. size and hashes from
-     * given expectedElements and falsePositiveProbability). This is done automatically.
+     * 检查参数并自动设置缺失参数
      *
      * @return the completed FilterBuilder
      */
     public FilterBuilder complete() {
-        if (done) { return this; }
+        if (done) {
+            return this;
+        }
         if (size == null && expectedElements != null && falsePositiveProbability != null) {
             size = optimalM(expectedElements, falsePositiveProbability);
         }
-        if (hashes == null && expectedElements != null && size != null) { hashes = optimalK(expectedElements, size); }
+        if (hashes == null && expectedElements != null && size != null) {
+            hashes = optimalK(expectedElements, size);
+        }
         if (size == null || hashes == null) {
             throw new NullPointerException("Neither (expectedElements, falsePositiveProbability) nor (size, hashes) were specified.");
         }
-        if (expectedElements == null) { expectedElements = optimalN(hashes, size); }
-        if (falsePositiveProbability == null) { falsePositiveProbability = optimalP(hashes, size, expectedElements); }
+        if (expectedElements == null) {
+            expectedElements = optimalN(hashes, size);
+        }
+        if (falsePositiveProbability == null) {
+            falsePositiveProbability = optimalP(hashes, size, expectedElements);
+        }
 
         done = true;
         return this;
@@ -553,15 +534,9 @@ public class FilterBuilder implements Cloneable, Serializable {
     }
 
     public RedisPool pool() {
-        if(done && pool == null) {
-            pool = RedisPool.builder()
-                .host(redisHost())
-                .port(redisPort())
-                .readSlaves(getReadSlaves())
-                .password(password())
-                .database(database())
-                .redisConnections(redisConnections())
-                .build();
+        if (done && pool == null) {
+            pool = RedisPool.builder().host(redisHost()).port(redisPort()).readSlaves(getReadSlaves()).password(password()).database(database())
+                    .redisConnections(redisConnections()).build();
         }
         return pool;
     }

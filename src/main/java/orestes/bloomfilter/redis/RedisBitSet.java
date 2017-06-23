@@ -9,9 +9,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * A persistent BitSet backed by Redis. Not all methods of the superclass are implemented. If needed they can be used
- * converting the RedisBitSet to a regular BitSet by calling {@link #asBitSet()}. <br> <br> External transactions or
- * pipeline can be propagated for use by modifying methods (e.g. {@link #set(int)}).
+ * Redis提供的bitset. 并非所有方法都实现.如果有需要，可用 {@link #asBitSet()}.转换成传统的BitSet<br>
  */
 public class RedisBitSet extends BitSet {
     private final RedisPool pool;
@@ -19,11 +17,11 @@ public class RedisBitSet extends BitSet {
     private int size;
 
     /**
-     * Constructs a new RedisBitSet.
+     * 构建bitset
      *
-     * @param pool the redis connection pool
-     * @param name the name used as key in the database
-     * @param size the initial size of the RedisBitSet
+     * @param pool the redis pool
+     * @param name redis中key的名称
+     * @param size RedisBitSet的初始化大小
      */
     public RedisBitSet(RedisPool pool, String name, int size) {
         this.pool = pool;
@@ -38,10 +36,10 @@ public class RedisBitSet extends BitSet {
     }
 
     /**
-     * Fetches the values at the given index positions in a multi transaction. This guarantees a consistent view.
+     * 获取指定位置的值.
      *
-     * @param indexes the index positions to query
-     * @return an array containing the values at the given index positions
+     * @param indexes 指定位置
+     * @return 指定位置的值.
      */
     public Boolean[] getBulk(int... indexes) {
         List<Boolean> results = pool.allowingSlaves().transactionallyDo(p -> {
@@ -63,11 +61,11 @@ public class RedisBitSet extends BitSet {
     }
 
     /**
-     * Performs the normal {@link #set(int, boolean)} operation using the given pipeline.
+     * 使用管道执行{@link #set(int, boolean)}
      *
-     * @param p        the propagated pipeline
-     * @param bitIndex a bit index
-     * @param value    a boolean value to set
+     * @param p        管道
+     * @param bitIndex bit位置
+     * @param value    待设置的值
      */
     public void set(Pipeline p, int bitIndex, boolean value) {
         p.setbit(name, bitIndex, value);
@@ -115,9 +113,9 @@ public class RedisBitSet extends BitSet {
     }
 
     /**
-     * Returns the RedisBitSet as a regular BitSet.
+     * 转换成BitSet.
      *
-     * @return this RedisBitSet as a regular BitSet
+     * @return BitSet.
      */
     public BitSet asBitSet() {
         return fromByteArrayReverse(toByteArray());
@@ -125,9 +123,9 @@ public class RedisBitSet extends BitSet {
 
 
     /**
-     * Overwrite the contents of this RedisBitSet by the given BitSet.
+     * 用BitSet的内容覆盖RedisBitSet
      *
-     * @param bits a regular BitSet used to overwrite this RedisBitSet
+     * @param bits BitSet
      */
     public void overwriteBitSet(BitSet bits) {
         pool.safelyDo(jedis -> jedis.set(SafeEncoder.encode(name), toByteArrayReverse(bits)));
@@ -143,10 +141,10 @@ public class RedisBitSet extends BitSet {
     }
 
     /**
-     * Tests whether the provided bit positions are all set.
+     * 是否给定位置上的值为true
      *
-     * @param positions the positions to test
-     * @return <tt>true</tt> if all positions are set
+     * @param positions 给定位置
+     * @return 是否给定位置上的值为true
      */
     public boolean isAllSet(int... positions) {
         Boolean[] results = getBulk(positions);
@@ -154,10 +152,10 @@ public class RedisBitSet extends BitSet {
     }
 
     /**
-     * Set all bits
+     * 批量设置
      *
-     * @param positions The positions to set
-     * @return {@code true} if any of the bits was previously unset.
+     * @param positions 给定位置
+     * @return 是否设置成功
      */
     public boolean setAll(int... positions) {
         List<Object> results = pool.transactionallyDo(p -> {
@@ -167,7 +165,7 @@ public class RedisBitSet extends BitSet {
         return results.stream().anyMatch(b -> !(Boolean) b);
     }
 
-    //Copied from: https://github.com/xetorthio/jedis/issues/301
+    //拷贝自: https://github.com/xetorthio/jedis/issues/301
     public static BitSet fromByteArrayReverse(final byte[] bytes) {
         final BitSet bits = new BitSet();
         for (int i = 0; i < bytes.length * 8; i++) {
@@ -178,7 +176,7 @@ public class RedisBitSet extends BitSet {
         return bits;
     }
 
-    //Copied from: https://github.com/xetorthio/jedis/issues/301
+    //拷贝自: https://github.com/xetorthio/jedis/issues/301
     public static byte[] toByteArrayReverse(final BitSet bits) {
         final byte[] bytes = new byte[bits.length() / 8 + 1];
         for (int i = 0; i < bits.length(); i++) {
@@ -192,8 +190,7 @@ public class RedisBitSet extends BitSet {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof RedisBitSet)
-            obj = ((RedisBitSet) obj).asBitSet();
+        if (obj instanceof RedisBitSet) obj = ((RedisBitSet) obj).asBitSet();
         return asBitSet().equals(obj);
     }
 }
