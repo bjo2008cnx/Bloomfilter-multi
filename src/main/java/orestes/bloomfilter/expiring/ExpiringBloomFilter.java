@@ -1,4 +1,4 @@
-package orestes.bloomfilter.cachesketch;
+package orestes.bloomfilter.expiring;
 
 import orestes.bloomfilter.BloomFilter;
 import orestes.bloomfilter.CountingBloomFilter;

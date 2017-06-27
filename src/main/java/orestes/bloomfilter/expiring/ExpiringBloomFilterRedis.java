@@ -1,8 +1,8 @@
-package orestes.bloomfilter.cachesketch;
+package orestes.bloomfilter.expiring;
 
 import orestes.bloomfilter.BloomFilter;
 import orestes.bloomfilter.FilterBuilder;
-import orestes.bloomfilter.cachesketch.ExpirationQueue.ExpiringItem;
+import orestes.bloomfilter.expiring.ExpirationQueue.ExpiringItem;
 import orestes.bloomfilter.redis.CountingBloomFilterRedis;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
