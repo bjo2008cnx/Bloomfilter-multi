@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Encapsulates the Redis keys for the Redis Bloom Filters
+ * 包装BloomFilter相关的redis的key
  */
 public class RedisKeys {
 

@@ -13,7 +13,8 @@ import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
 /**
- * 哈希算法
+ * 提供多种哈希算法
+ * hashMurmur3:：高运算性能，低碰撞率,2011年Google推出其变种的CityHash算法
  */
 public class HashProvider {
     private static final int seed32 = 89478583;
