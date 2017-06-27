@@ -7,6 +7,11 @@ import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+/**
+ * 可过期的队列
+ *
+ * @param <T>
+ */
 public class ExpirationQueue<T> {
     private final Thread workerThread;
     private DelayQueue<ExpiringItem<T>> delayedQueue;
@@ -23,7 +28,7 @@ public class ExpirationQueue<T> {
     };
 
     public ExpirationQueue(Consumer<ExpiringItem<T>> handler) {
-        this.delayedQueue =  new DelayQueue<>();
+        this.delayedQueue = new DelayQueue<>();
         this.handler = handler;
         this.workerThread = new Thread(queueWorker);
         workerThread.setDaemon(true);
@@ -54,18 +59,14 @@ public class ExpirationQueue<T> {
         delayedQueue.clear();
     }
 
-
-
     public static class ExpiringItem<T> implements Delayed {
         private final T item;
         private final long expires;
-
 
         public ExpiringItem(T item, long expires) {
             this.item = item;
             this.expires = expires;
         }
-
 
         public T getItem() {
             return item;
