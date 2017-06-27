@@ -2,9 +2,9 @@ package orestes.bloomfilter.test.cachesketch;
 
 import orestes.bloomfilter.BloomFilter;
 import orestes.bloomfilter.FilterBuilder;
-import orestes.bloomfilter.cachesketch.ExpiringBloomFilter;
-import orestes.bloomfilter.cachesketch.ExpiringBloomFilterMemory;
-import orestes.bloomfilter.cachesketch.ExpiringBloomFilterRedis;
+import orestes.bloomfilter.expiring.ExpiringBloomFilter;
+import orestes.bloomfilter.expiring.ExpiringBloomFilterMemory;
+import orestes.bloomfilter.expiring.ExpiringBloomFilterRedis;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
