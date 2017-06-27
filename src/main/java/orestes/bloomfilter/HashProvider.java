@@ -13,19 +13,18 @@ import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
 /**
- *
+ * 哈希算法
  */
 public class HashProvider {
     private static final int seed32 = 89478583;
 
 
     /**
-     * @param a the byte array to be hashed
-     * @return the 32 bit integer hash value
+     * @param a the value to be hashed
+     * @return 32bits hash value
      */
-    static int hashBytes(byte a[]) {
-        // 32 bit FNV constants. Using longs as Java does not support unsigned
-        // datatypes.
+    static int hashBytes(byte[] a) {
+        // 32 bit FNV constants. Using longs as Java does not support unsigned  datatypes.
         final long FNV_PRIME = 16777619;
         final long FNV_OFFSET_BASIS = 2166136261l;
 
