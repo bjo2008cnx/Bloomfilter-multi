@@ -43,7 +43,7 @@ public interface ExpiringBloomFilter<T> extends CountingBloomFilter<T> {
     }
 
     /**
-     * Reports a read on element that is to be cached for a certain ttl[TD]
+     * report一个待加入缓存的读操作[TD]
      *
      * @param element 元素(或元素的 id)
      * @param TTL     时间单位
@@ -52,7 +52,7 @@ public interface ExpiringBloomFilter<T> extends CountingBloomFilter<T> {
     void reportRead(T element, long TTL, TimeUnit unit);
 
     /**
-     * Reports a write on an object, adding it to the underlying Bloom filter for the remaining ttl
+     * Reports 对象的写操作
      *
      * @param element 元素(或元素的 id)
      * @param unit 时间单位
@@ -61,7 +61,7 @@ public interface ExpiringBloomFilter<T> extends CountingBloomFilter<T> {
     Long reportWrite(T element, TimeUnit unit);
 
     /**
-     * Reports a write.
+     * Reports 对象的写操作
      *
      * @param element 元素(或元素的 id)
      * @return <code>true</code>, if the elements needs invalidation

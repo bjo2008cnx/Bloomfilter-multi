@@ -49,7 +49,6 @@ public class CountingBloomFilterTest {
     public void getEstimatedCount() throws Exception {
         CountingBloomFilter<String> b = createBF();
         System.out.println("Size of bloom filter: " + b.getSize() + ", hash functions: " + b.getHashes());
-        //TODO 为啥这里的size是100
         b.clear();
         b.add("Käsebrot");
         b.add("ist");
