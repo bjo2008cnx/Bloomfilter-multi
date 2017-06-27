@@ -130,8 +130,6 @@ public class FilterBuilder implements Cloneable, Serializable {
     }
 
     /**
-     *
-     *
      * @param password The Redis PW
      * @return 修改后的对象
      */
@@ -165,6 +163,7 @@ public class FilterBuilder implements Cloneable, Serializable {
 
     /**
      * 设置host
+     *
      * @param host the Redis host
      * @return 修改后的对象
      */
@@ -290,8 +289,8 @@ public class FilterBuilder implements Cloneable, Serializable {
     }
 
     /**
-     *
      * 构建对象 ，自动计算缺失的参数 (如： bit size).
+     *
      * @param <T> the type of element contained in the Counting Bloom filter.
      * @return the constructed Counting Bloom filter
      */
@@ -356,173 +355,163 @@ public class FilterBuilder implements Cloneable, Serializable {
     }
 
 
-    /**
-     * @return {@code true} if the Bloom Filter will be Redis-backed
-     */
     public boolean redisBacked() {
         return redisBacked;
     }
 
-    /**
-     * @return the number of expected elements for the Bloom filter
-     */
+
     public int expectedElements() {
         return expectedElements;
     }
 
     /**
-     * @return the size of the Bloom filter in bits
+     * @return Bloom filter的大小，以bit为单位
      */
     public int size() {
         return size;
     }
 
     /**
-     * @return the number of hashes used by the Bloom filter
+     * @return Bloom filter使用的哈希函数数量
      */
     public int hashes() {
         return hashes;
     }
 
     /**
-     * @return The number of bits used for counting in case of a counting Bloom filter
+     * @return 用于计数的bits位数
      */
     public int countingBits() {
         return countingBits;
     }
 
     /**
-     * @return the tolerable false positive probability of the Bloom filter
+     * @return 可容忍的假阳率
      */
     public double falsePositiveProbability() {
         return falsePositiveProbability;
     }
 
     /**
-     * @return the name of the Bloom filter
+     * @return Bloom filter的名称
      */
     public String name() {
         return name;
     }
 
     /**
-     * @return the host name of the Redis server backing the Bloom filter
+     * @return redis host
      */
     public String redisHost() {
         return redisHost;
     }
 
     /**
-     * @return the port used by the Redis server backing the Bloom filter
+     * @return redis port
      */
     public int redisPort() {
         return redisPort;
     }
 
     /**
-     * @return the number of connections used by the Redis Server backing the Bloom filter
+     * @return redis连接的数量
      */
     public int redisConnections() {
         return redisConnections;
     }
 
     /**
-     * @return if SSL is enabled for Redis connection
+     * @return redis 连接是否使用SSL
      */
     public boolean redisSsl() {
         return redisSsl;
     }
 
     /**
-     * @return The hash method to be used by the Bloom filter
+     * @return Bloom filter待使用的hash函数
      */
     public HashMethod hashMethod() {
         return hashMethod;
     }
 
     /**
-     * @return the actual hash function to be used by the Bloom filter
+     * @return Bloom filter实际使用的hash函数
      */
     public HashFunction hashFunction() {
         return hashFunction;
     }
 
     /**
-     * @return Return the default Charset used for conversion of String values into byte arrays used for hashing
+     * @return 字符串转换为bytes时使用的字符集
      */
     public static Charset defaultCharset() {
         return defaultCharset;
     }
 
     /**
-     * @return {@code true} if the Bloom filter that is to be built should overwrite any existing Bloom filter with the
-     * same name
+     * @return {@code true} 如果同名的bloomFilter已经存在，是否覆盖
      */
     public boolean overwriteIfExists() {
         return overwriteIfExists;
     }
 
     /**
-     * @return return the list of all read slaves to be used by the Redis-backed Bloom filter
+     * @return 返回所有的redis slave
      */
     public Set<Entry<String, Integer>> getReadSlaves() {
         return slaves;
     }
 
     /**
-     * Checks whether a configuration is compatible to another configuration based on the size of the Bloom filter and
-     * its hash functions.
+     * 检查两个bf的大小和哈希函数确认是否兼容
      *
-     * @param other the other configuration
-     * @return {@code true} if the configurations are compatible
+     * @param other 另一个哈希函数的配置
+     * @return {@code true} 配置是否兼容
      */
     public boolean isCompatibleTo(FilterBuilder other) {
         return this.size() == other.size() && this.hashes() == other.hashes() && this.hashMethod() == other.hashMethod();
     }
 
     /**
-     * Calculates the optimal size <i>size</i> of the bloom filter in bits given <i>expectedElements</i> (expected
-     * number of elements in bloom filter) and <i>falsePositiveProbability</i> (tolerable false positive rate).
+     * 根据给定的元素数量<i>expectedElements</i>和假阳率<i>falsePositiveProbability</i>，自动计算bf的bits大小
      *
-     * @param n Expected number of elements inserted in the bloom filter
-     * @param p Tolerable false positive rate
-     * @return the optimal size <i>size</i> of the bloom filter in bits
+     * @param n 期待的插入BloomFilter的元素数量
+     * @param p 可容忍的假阳率
+     * @return 计算出的BloomFilter的bits大小
      */
     public static int optimalM(long n, double p) {
         return (int) Math.ceil(-1 * (n * Math.log(p)) / Math.pow(Math.log(2), 2));
     }
 
     /**
-     * Calculates the optimal <i>hashes</i> (number of hash function) given <i>expectedElements</i> (expected number of
-     * elements in bloom filter) and <i>size</i> (size of bloom filter in bits).
+     * 根据给定的元素数量<i>expectedElements</i>和BloomFilter的大小(bits)，自动计算hash函数的个数
      *
-     * @param n Expected number of elements inserted in the bloom filter
-     * @param m The size of the bloom filter in bits.
-     * @return the optimal amount of hash functions hashes
+     * @param n 期待的插入BloomFilter的元素数量
+     * @param m BloomFilter的bits大小
+     * @return 计算出的hash函数的个数
      */
     public static int optimalK(long n, long m) {
         return (int) Math.ceil((Math.log(2) * m) / n);
     }
 
     /**
-     * Calculates the amount of elements a Bloom filter for which the given configuration of size and hashes is
-     * optimal.
+     * 根据配置的大小和函数数量计算元素个数 [TD]
      *
-     * @param k number of hashes
-     * @param m The size of the bloom filter in bits.
-     * @return amount of elements a Bloom filter for which the given configuration of size and hashes is optimal.
+     * @param k 哈希函数个数
+     * @param m BloomFilter的大小
+     * @return 元素个数(amount of elements a Bloom filter for which the given configuration of size and hashes is optimal.)
      */
     public static int optimalN(long k, long m) {
         return (int) Math.ceil((Math.log(2) * m) / k);
     }
 
     /**
-     * Calculates the best-case (uniform hash function) false positive probability.
+     * 计算最好情况下的假阳率(Calculates the best-case (uniform hash function) false positive probability.) [TD]
      *
-     * @param k                number of hashes
-     * @param m                The size of the bloom filter in bits.
-     * @param insertedElements number of elements inserted in the filter
-     * @return The calculated false positive probability
+     * @param k                哈希函数个数
+     * @param m                BloomFilter的bits大小
+     * @param insertedElements 插入BloomFilter的元素个数
+     * @return 计算出的假阳率
      */
     public static double optimalP(long k, long m, double insertedElements) {
         return Math.pow((1 - Math.exp(-k * insertedElements / (double) m)), k);
