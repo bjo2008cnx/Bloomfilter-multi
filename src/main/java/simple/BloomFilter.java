@@ -3,12 +3,12 @@
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -23,33 +23,24 @@ import java.util.BitSet;
 import java.util.Collection;
 
 /**
- * Implementation of a Bloom-filter, as described here:
- * http://en.wikipedia.org/wiki/Bloom_filter
+ * BloomFilter 实现
  *
- * For updates and bugfixes, see http://github.com/magnuss/java-bloomfilter
- *
- * Inspired by the SimpleBloomFilter-class written by Ian Clarke. This
- * implementation provides a more evenly distributed Hash-function by
- * using a proper digest instead of the Java RNG. Many of the changes
- * were proposed in comments in his blog:
- * http://blog.locut.us/2008/01/12/a-decent-stand-alone-java-bloom-filter-implementation/
- *
- * @param <E> Object type that is to be inserted into the Bloom filter, e.g. String or Integer.
- * @author Magnus Skjegstad <magnus@skjegstad.com>
+ * @param <E> BloomFilter中数据的类型 如，String or Integer.
  */
 public class BloomFilter<E> implements Serializable {
     private BitSet bitset;
     private int bitSetSize;
     private double bitsPerElement;
-    private int expectedNumberOfFilterElements; // expected (maximum) number of elements to be added
-    private int numberOfAddedElements; // number of elements actually added to the Bloom filter
-    private int k; // number of hash functions
+    private int expectedNumberOfFilterElements; //可容纳的元素最大数
+    private int numberOfAddedElements; //实际元素个数
+    private int k; // 哈希函数个数
 
-    static final Charset charset = Charset.forName("UTF-8"); // encoding used for storing hash values as strings
+    static final Charset charset = Charset.forName("UTF-8");
 
-    static final String hashName = "MD5"; // MD5 gives good enough accuracy in most circumstances. Change to SHA1 if it's needed
+    static final String hashName = "MD5";
     static final MessageDigest digestFunction;
-    static { // The digest method is reused between instances
+
+    static {
         MessageDigest tmp;
         try {
             tmp = java.security.MessageDigest.getInstance(hashName);
@@ -60,56 +51,50 @@ public class BloomFilter<E> implements Serializable {
     }
 
     /**
-      * Constructs an empty Bloom filter. The total length of the Bloom filter will be
-      * c*n.
-      *
-      * @param c is the number of bits used per element.
-      * @param n is the expected number of elements the filter will contain.
-      * @param k is the number of hash functions used.
-      */
+     * 创建Bloom filter,其长度： c*n.
+     *
+     * @param c 每个元素的bit 数.
+     * @param n 最大容量
+     * @param k 哈希函数个数
+     */
     public BloomFilter(double c, int n, int k) {
-      this.expectedNumberOfFilterElements = n;
-      this.k = k;
-      this.bitsPerElement = c;
-      this.bitSetSize = (int)Math.ceil(c * n);
-      numberOfAddedElements = 0;
-      this.bitset = new BitSet(bitSetSize);
+        this.expectedNumberOfFilterElements = n;
+        this.k = k;
+        this.bitsPerElement = c;
+        this.bitSetSize = (int) Math.ceil(c * n);
+        numberOfAddedElements = 0;
+        this.bitset = new BitSet(bitSetSize);
     }
 
     /**
-     * Constructs an empty Bloom filter. The optimal number of hash functions (k) is estimated from the total size of the Bloom
-     * and the number of expected elements.
+     * 创建Bloom filter,自动推测哈希函数个数
      *
-     * @param bitSetSize defines how many bits should be used in total for the filter.
-     * @param expectedNumberOElements defines the maximum number of elements the filter is expected to contain.
+     * @param bitSetSize              总bit数大小
+     * @param expectedNumberOElements 能容纳的元素数量
      */
     public BloomFilter(int bitSetSize, int expectedNumberOElements) {
-        this(bitSetSize / (double)expectedNumberOElements,
-             expectedNumberOElements,
-             (int) Math.round((bitSetSize / (double)expectedNumberOElements) * Math.log(2.0)));
+        this(bitSetSize / (double) expectedNumberOElements, expectedNumberOElements, (int) Math.round((bitSetSize / (double) expectedNumberOElements) * Math
+                .log(2.0)));
     }
 
     /**
-     * Constructs an empty Bloom filter with a given false positive probability. The number of bits per
-     * element and the number of hash functions is estimated
-     * to match the false positive probability.
+     * 自动推测哈希函数个数
      *
-     * @param falsePositiveProbability is the desired false positive probability.
-     * @param expectedNumberOfElements is the expected number of elements in the Bloom filter.
+     * @param falsePositiveProbability 错误率
+     * @param expectedNumberOfElements 能容纳的元素数量
      */
     public BloomFilter(double falsePositiveProbability, int expectedNumberOfElements) {
         this(Math.ceil(-(Math.log(falsePositiveProbability) / Math.log(2))) / Math.log(2), // c = k / ln(2)
-             expectedNumberOfElements,
-             (int)Math.ceil(-(Math.log(falsePositiveProbability) / Math.log(2)))); // k = ceil(-log_2(false prob.))
+                expectedNumberOfElements, (int) Math.ceil(-(Math.log(falsePositiveProbability) / Math.log(2)))); // k = ceil(-log_2(false prob.))
     }
 
     /**
-     * Construct a new Bloom filter based on existing Bloom filter data.
+     * 基于已有BF创建新的 BF
      *
-     * @param bitSetSize defines how many bits should be used for the filter.
-     * @param expectedNumberOfFilterElements defines the maximum number of elements the filter is expected to contain.
-     * @param actualNumberOfFilterElements specifies how many elements have been inserted into the <code>filterData</code> BitSet.
-     * @param filterData a BitSet representing an existing Bloom filter.
+     * @param bitSetSize                     bitset的大小
+     * @param expectedNumberOfFilterElements 能容纳的元素数
+     * @param actualNumberOfFilterElements   实际写入的元素数
+     * @param filterData                     已存在的BF对应的BitSet
      */
     public BloomFilter(int bitSetSize, int expectedNumberOfFilterElements, int actualNumberOfFilterElements, BitSet filterData) {
         this(bitSetSize, expectedNumberOfFilterElements);
@@ -118,44 +103,42 @@ public class BloomFilter<E> implements Serializable {
     }
 
     /**
-     * Generates a digest based on the contents of a String.
+     * 计算哈希值
      *
-     * @param val specifies the input data.
-     * @param charset specifies the encoding of the input data.
-     * @return digest as long.
+     * @param val     待计算哈希值的字符串
+     * @param charset 字符集
+     * @return 哈希值
      */
     public static int createHash(String val, Charset charset) {
         return createHash(val.getBytes(charset));
     }
 
     /**
-     * Generates a digest based on the contents of a String.
+     * 计算哈希值
      *
-     * @param val specifies the input data. The encoding is expected to be UTF-8.
-     * @return digest as long.
+     * @param val 待计算哈希值的字符串,使用UTF8
+     * @return 哈希值
      */
     public static int createHash(String val) {
         return createHash(val, charset);
     }
 
     /**
-     * Generates a digest based on the contents of an array of bytes.
+     * 计算哈希值
      *
-     * @param data specifies input data.
-     * @return digest as long.
+     * @param data 待计算哈希值的字符串对应的bytes
+     * @return 哈希值
      */
     public static int createHash(byte[] data) {
         return createHashes(data, 1)[0];
     }
 
     /**
-     * Generates digests based on the contents of an array of bytes and splits the result into 4-byte int's and store them in an array. The
-     * digest function is called until the required number of int's are produced. For each call to digest a salt
-     * is prepended to the data. The salt is increased by 1 for each call.
+     * 计算哈希值,将计算结果拆分到4-byte int型数组 .每次计算hash值时盐值加1.
      *
-     * @param data specifies input data.
-     * @param hashes number of hashes/int's to produce.
-     * @return array of int-sized hashes
+     * @param data   待计算哈希值的字符串对应的bytes
+     * @param hashes 哈希函数个数
+     * @return 多个哈希函数生成的哈希值
      */
     public static int[] createHashes(byte[] data, int hashes) {
         int[] result = new int[hashes];
@@ -167,12 +150,12 @@ public class BloomFilter<E> implements Serializable {
             synchronized (digestFunction) {
                 digestFunction.update(salt);
                 salt++;
-                digest = digestFunction.digest(data);                
+                digest = digestFunction.digest(data);
             }
-        
-            for (int i = 0; i < digest.length/4 && k < hashes; i++) {
+
+            for (int i = 0; i < digest.length / 4 && k < hashes; i++) {
                 int h = 0;
-                for (int j = (i*4); j < (i*4)+4; j++) {
+                for (int j = (i * 4); j < (i * 4) + 4; j++) {
                     h <<= 8;
                     h |= ((int) digest[j]) & 0xFF;
                 }
@@ -184,10 +167,10 @@ public class BloomFilter<E> implements Serializable {
     }
 
     /**
-     * Compares the contents of two instances to see if they are equal.
+     * 比较两个BF实例是否相等
      *
-     * @param obj is the object to compare to.
-     * @return True if the contents of the objects are equal.
+     * @param obj 比较的对象
+     * @return 是否相等
      */
     @Override
     public boolean equals(Object obj) {
@@ -197,7 +180,7 @@ public class BloomFilter<E> implements Serializable {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final BloomFilter<E> other = (BloomFilter<E>) obj;        
+        final BloomFilter<E> other = (BloomFilter<E>) obj;
         if (this.expectedNumberOfFilterElements != other.expectedNumberOfFilterElements) {
             return false;
         }
@@ -214,8 +197,9 @@ public class BloomFilter<E> implements Serializable {
     }
 
     /**
-     * Calculates a hash code for this class.
-     * @return hash code representing the contents of an instance of this class.
+     * 计算BF的哈希值
+     *
+     * @return hash code
      */
     @Override
     public int hashCode() {
@@ -229,39 +213,29 @@ public class BloomFilter<E> implements Serializable {
 
 
     /**
-     * Calculates the expected probability of false positives based on
-     * the number of expected filter elements and the size of the Bloom filter.
-     * <br /><br />
-     * The value returned by this method is the <i>expected</i> rate of false
-     * positives, assuming the number of inserted elements equals the number of
-     * expected elements. If the number of elements in the Bloom filter is less
-     * than the expected value, the true probability of false positives will be lower.
+     * 根据元素数量和BloomFilter的size自动计算错误率,如果BF中的元素比期望的少，实现的失误率会更低
      *
-     * @return expected probability of false positives.
+     * @return 错误率
      */
     public double expectedFalsePositiveProbability() {
         return getFalsePositiveProbability(expectedNumberOfFilterElements);
     }
 
     /**
-     * Calculate the probability of a false positive given the specified
-     * number of inserted elements.
+     * 根据指定的元素数量和BloomFilter的size自动计算错误率
      *
-     * @param numberOfElements number of inserted elements.
-     * @return probability of a false positive.
+     * @param numberOfElements 指定的元素数量
+     * @return 错误率
      */
     public double getFalsePositiveProbability(double numberOfElements) {
         // (1 - e^(-k * n / m)) ^ k
-        return Math.pow((1 - Math.exp(-k * (double) numberOfElements
-                        / (double) bitSetSize)), k);
+        return Math.pow((1 - Math.exp(-k * (double) numberOfElements / (double) bitSetSize)), k);
 
     }
 
     /**
-     * Get the current probability of a false positive. The probability is calculated from
-     * the size of the Bloom filter and the current number of elements added to it.
-     *
-     * @return probability of false positives.
+     * 根据元素数量和BloomFilter的size自动计算实际的错误率
+     * @return 错误率.
      */
     public double getFalsePositiveProbability() {
         return getFalsePositiveProbability(numberOfAddedElements);
@@ -269,10 +243,7 @@ public class BloomFilter<E> implements Serializable {
 
 
     /**
-     * Returns the value chosen for K.<br />
-     * <br />
-     * K is the optimal number of hash functions based on the size
-     * of the Bloom filter and the expected number of inserted elements.
+     * 返回hash函数个数
      *
      * @return optimal k.
      */
@@ -281,7 +252,7 @@ public class BloomFilter<E> implements Serializable {
     }
 
     /**
-     * Sets all bits to false in the Bloom filter.
+     * 设置所有的bits为0
      */
     public void clear() {
         bitset.clear();
@@ -289,55 +260,51 @@ public class BloomFilter<E> implements Serializable {
     }
 
     /**
-     * Adds an object to the Bloom filter. The output from the object's
-     * toString() method is used as input to the hash functions.
+     * 增加元素
      *
-     * @param element is an element to register in the Bloom filter.
+     * @param element 待增加的元素
      */
     public void add(E element) {
-       add(element.toString().getBytes(charset));
+        add(element.toString().getBytes(charset));
     }
 
     /**
-     * Adds an array of bytes to the Bloom filter.
+     * 增加元素
      *
-     * @param bytes array of bytes to add to the Bloom filter.
+     * @param bytes 待增加的元素
      */
     public void add(byte[] bytes) {
-       int[] hashes = createHashes(bytes, k);
-       for (int hash : hashes)
-           bitset.set(Math.abs(hash % bitSetSize), true);
-       numberOfAddedElements ++;
+        int[] hashes = createHashes(bytes, k);
+        for (int hash : hashes)
+            bitset.set(Math.abs(hash % bitSetSize), true);
+        numberOfAddedElements++;
     }
 
     /**
-     * Adds all elements from a Collection to the Bloom filter.
-     * @param c Collection of elements.
+     * 待增加的元素
+     *
+     * @param c 待增加的元素
      */
     public void addAll(Collection<? extends E> c) {
         for (E element : c)
             add(element);
     }
-        
+
     /**
-     * Returns true if the element could have been inserted into the Bloom filter.
-     * Use getFalsePositiveProbability() to calculate the probability of this
-     * being correct.
+     * 是否包含元素
      *
-     * @param element element to check.
-     * @return true if the element could have been inserted into the Bloom filter.
+     * @param element 元素
+     * @return 是否包含元素
      */
     public boolean contains(E element) {
         return contains(element.toString().getBytes(charset));
     }
 
     /**
-     * Returns true if the array of bytes could have been inserted into the Bloom filter.
-     * Use getFalsePositiveProbability() to calculate the probability of this
-     * being correct.
+     * 是否包含元素
      *
-     * @param bytes array of bytes to check.
-     * @return true if the array could have been inserted into the Bloom filter.
+     * @param bytes 元素
+     * @return 是否包含元素
      */
     public boolean contains(byte[] bytes) {
         int[] hashes = createHashes(bytes, k);
@@ -350,92 +317,86 @@ public class BloomFilter<E> implements Serializable {
     }
 
     /**
-     * Returns true if all the elements of a Collection could have been inserted
-     * into the Bloom filter. Use getFalsePositiveProbability() to calculate the
-     * probability of this being correct.
-     * @param c elements to check.
-     * @return true if all the elements in c could have been inserted into the Bloom filter.
+     * 是否包含元素
+     *
+     * @param c 元素
+     * @return 是否全部包含c中的元素
      */
     public boolean containsAll(Collection<? extends E> c) {
         for (E element : c)
-            if (!contains(element))
-                return false;
+            if (!contains(element)) return false;
         return true;
     }
 
     /**
-     * Read a single bit from the Bloom filter.
-     * @param bit the bit to read.
-     * @return true if the bit is set, false if it is not.
+     * 读取bit
+     *
+     * @param bit bit的位置
+     * @return true  bit的位置对应的值
      */
     public boolean getBit(int bit) {
         return bitset.get(bit);
     }
 
     /**
-     * Set a single bit in the Bloom filter.
-     * @param bit is the bit to set.
-     * @param value If true, the bit is set. If false, the bit is cleared.
+     * 设置bit
+     *
+     * @param bit   bit的位置
+     * @param value bit的位置对应的值
      */
     public void setBit(int bit, boolean value) {
         bitset.set(bit, value);
     }
 
     /**
-     * Return the bit set used to store the Bloom filter.
-     * @return bit set representing the Bloom filter.
+     * 返回全部bit
+     *
+     * @return bit 全部bit
      */
     public BitSet getBitSet() {
         return bitset;
     }
 
     /**
-     * Returns the number of bits in the Bloom filter. Use count() to retrieve
-     * the number of inserted elements.
+     * 返回bitset的大小
      *
-     * @return the size of the bitset used by the Bloom filter.
+     * @return bitset的大小
      */
     public int size() {
         return this.bitSetSize;
     }
 
     /**
-     * Returns the number of elements added to the Bloom filter after it
-     * was constructed or after clear() was called.
+     * 返回元素数
      *
-     * @return number of elements added to the Bloom filter.
+     * @return 元素数
      */
     public int count() {
         return this.numberOfAddedElements;
     }
 
     /**
-     * Returns the expected number of elements to be inserted into the filter.
-     * This value is the same value as the one passed to the constructor.
+     * 返回期待的元素数，即能容纳的总元素数
      *
-     * @return expected number of elements.
+     * @return 能容纳的总元素数
      */
     public int getExpectedNumberOfElements() {
         return expectedNumberOfFilterElements;
     }
 
     /**
-     * Get expected number of bits per element when the Bloom filter is full. This value is set by the constructor
-     * when the Bloom filter is created. See also getBitsPerElement().
-     *
-     * @return expected number of bits per element.
+     * 返回每个元素对应的bit数量
      */
     public double getExpectedBitsPerElement() {
         return this.bitsPerElement;
     }
 
     /**
-     * Get actual number of bits per element based on the number of elements that have currently been inserted and the length
-     * of the Bloom filter. See also getExpectedBitsPerElement().
+     * 返回每个元素实际对应的bit数量
      *
-     * @return number of bits per element.
+     * @return 每个元素实际对应的bit数量
      */
     public double getBitsPerElement() {
-        return this.bitSetSize / (double)numberOfAddedElements;
+        return this.bitSetSize / (double) numberOfAddedElements;
     }
 }
