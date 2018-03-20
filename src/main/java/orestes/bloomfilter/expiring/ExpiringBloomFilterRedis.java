@@ -14,18 +14,17 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-public class ExpiringBloomFilterRedis<T> extends CountingBloomFilterRedis<T> implements ExpiringBloomFilter<T> {
+public class ExpiringBloomFilterRedis<T> extends CountingBloomFilterRedis<T> implements ExpiringCountingBloomFilter<T> {
     private final Clock clock;
     private ExpirationQueue<T> queue;
-    private final String read_lua = "local current = redis.call('get', KEYS[1]); if current == false or tonumber(ARGV[1]) > tonumber(current) then redis.call('psetex', KEYS[1], ARGV[2], ARGV[1]) end";
-    private String read_lua_hash = "";
-
+    private static final String READ_LUA = "local current = redis.call('get', KEYS[1]); if current == false or tonumber(ARGV[1]) > tonumber(current) then redis.call('psetex', KEYS[1], ARGV[2], ARGV[1]) end";
+    private String readLuaHash = "";
 
     public ExpiringBloomFilterRedis(FilterBuilder builder) {
         super(builder);
         this.clock = pool.getClock();
         this.queue = new ExpirationQueue<>(this::onExpire);
-        this.read_lua_hash = pool.safelyReturn(jedis -> jedis.scriptLoad(read_lua));
+        this.readLuaHash = pool.safelyReturn(jedis -> jedis.scriptLoad(READ_LUA));
     }
 
 
@@ -80,7 +79,7 @@ public class ExpiringBloomFilterRedis<T> extends CountingBloomFilterRedis<T> imp
         String ttl_str = String.valueOf(TimeUnit.MILLISECONDS.convert(TTL, unit));
         String ts = ttlToTimestamp(TTL, unit).toString();
         pool.safelyDo(jedis -> {
-            jedis.evalsha(read_lua_hash, Collections.singletonList(key(element)),
+            jedis.evalsha(readLuaHash, Collections.singletonList(key(element)),
                 Arrays.asList(ts, ttl_str));
         });
     }

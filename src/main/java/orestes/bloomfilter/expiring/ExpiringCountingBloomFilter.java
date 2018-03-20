@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
  * 可过期的计数BF
  *
  */
-public interface ExpiringBloomFilter<T> extends CountingBloomFilter<T> {
+public interface ExpiringCountingBloomFilter<T> extends CountingBloomFilter<T> {
 
     /**
      * 判断是否被缓存(存在且未过期)

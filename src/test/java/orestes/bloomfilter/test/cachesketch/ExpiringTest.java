@@ -2,7 +2,7 @@ package orestes.bloomfilter.test.cachesketch;
 
 import orestes.bloomfilter.BloomFilter;
 import orestes.bloomfilter.FilterBuilder;
-import orestes.bloomfilter.expiring.ExpiringBloomFilter;
+import orestes.bloomfilter.expiring.ExpiringCountingBloomFilter;
 import orestes.bloomfilter.expiring.ExpiringBloomFilterMemory;
 import orestes.bloomfilter.expiring.ExpiringBloomFilterRedis;
 import org.junit.Before;
@@ -23,7 +23,7 @@ import static org.junit.Assert.*;
 @RunWith(Parameterized.class)
 public class ExpiringTest {
     private final boolean inMemory;
-    private ExpiringBloomFilter<String> filter;
+    private ExpiringCountingBloomFilter<String> filter;
 
     @Parameterized.Parameters(name = "Expiring Bloom Filter test {0}")
     public static Collection<Object[]> data() throws Exception {

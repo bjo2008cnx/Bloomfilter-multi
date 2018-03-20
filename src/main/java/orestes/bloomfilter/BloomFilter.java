@@ -25,7 +25,7 @@ public interface BloomFilter<T> extends Cloneable, Serializable {
      * @param element 待添加的元素
      * @return {@code true} 在bf中对应的bits是否已存在.
      */
-    public default boolean add(T element) {
+    default boolean add(T element) {
         return addRaw(toBytes(element));
     }
 
@@ -35,14 +35,14 @@ public interface BloomFilter<T> extends Cloneable, Serializable {
      * @param elements 待添加的元素
      * @return 在bf中对应的bits是否已存在.
      */
-    public default List<Boolean> addAll(Collection<T> elements) {
+    default List<Boolean> addAll(Collection<T> elements) {
         return elements.stream().map(this::add).collect(Collectors.toList());
     }
 
     /**
      * 删除全部元素
      */
-    public void clear();
+    void clear();
 
     /**
      * 是否已存在
@@ -50,7 +50,7 @@ public interface BloomFilter<T> extends Cloneable, Serializable {
      * @param element 待比较的元素
      * @return {@code true} 是否已存在
      */
-    public boolean contains(byte[] element);
+    boolean contains(byte[] element);
 
     /**
      * 是否已存在
@@ -58,7 +58,7 @@ public interface BloomFilter<T> extends Cloneable, Serializable {
      * @param element 待比较的元素
      * @return {@code true} 是否已存在
      */
-    public default boolean contains(T element) {
+    default boolean contains(T element) {
         return contains(toBytes(element));
     }
 
@@ -68,7 +68,7 @@ public interface BloomFilter<T> extends Cloneable, Serializable {
      * @param elements 待比较的元素
      * @return 是否已存在
      */
-    public default List<Boolean> contains(Collection<T> elements) {
+    default List<Boolean> contains(Collection<T> elements) {
         return elements.stream().map(this::contains).collect(Collectors.toList());
     }
 
@@ -78,7 +78,7 @@ public interface BloomFilter<T> extends Cloneable, Serializable {
      * @param elements 待比较的元素
      * @return {@code true} 是否已存在
      */
-    public default boolean containsAll(Collection<T> elements) {
+    default boolean containsAll(Collection<T> elements) {
         return elements.stream().allMatch(this::contains);
     }
 
@@ -87,28 +87,28 @@ public interface BloomFilter<T> extends Cloneable, Serializable {
      *
      * @return 对应的bitset
      */
-    public BitSet getBitSet();
+    BitSet getBitSet();
 
     /**
      * 获取配置
      *
      * @return 配置
      */
-    public FilterBuilder config();
+    FilterBuilder config();
 
     /**
      * 深拷贝
      *
      * @return 拷贝的bf
      */
-    public BloomFilter<T> clone();
+    BloomFilter<T> clone();
 
     /**
      * 获取大小, i.e. 即bit vector 的 大小
      *
      * @return bit vector 的 大小
      */
-    public default int getSize() {
+    default int getSize() {
         return config().size();
     }
 
@@ -117,7 +117,7 @@ public interface BloomFilter<T> extends Cloneable, Serializable {
      *
      * @return 期望的元素
      */
-    public default int getExpectedElements() {
+    default int getExpectedElements() {
         return config().expectedElements();
     }
 
@@ -126,7 +126,7 @@ public interface BloomFilter<T> extends Cloneable, Serializable {
      *
      * @return hash函数个数
      */
-    public default int getHashes() {
+    default int getHashes() {
         return config().hashes();
     }
 
@@ -135,7 +135,7 @@ public interface BloomFilter<T> extends Cloneable, Serializable {
      *
      * @return 失效率
      */
-    public default double getFalsePositiveProbability() {
+    default double getFalsePositiveProbability() {
         return config().falsePositiveProbability();
     }
 
@@ -145,7 +145,7 @@ public interface BloomFilter<T> extends Cloneable, Serializable {
      * @param element 待转换的元素
      * @return 转换的字节
      */
-    public default byte[] toBytes(T element) {
+    default byte[] toBytes(T element) {
         return element.toString().getBytes(FilterBuilder.defaultCharset());
     }
 
@@ -158,7 +158,7 @@ public interface BloomFilter<T> extends Cloneable, Serializable {
      * @see #compatible(BloomFilter)
      */
     @Deprecated
-    public default boolean compatible(BloomFilter<T> bloomFilter, BloomFilter<T> other) {
+    default boolean compatible(BloomFilter<T> bloomFilter, BloomFilter<T> other) {
         return bloomFilter.compatible(other);
     }
 
@@ -168,14 +168,14 @@ public interface BloomFilter<T> extends Cloneable, Serializable {
      * @param other the other bloomfilter
      * @return <code>true</code>是否兼容
      */
-    public default boolean compatible(BloomFilter<T> other) {
+    default boolean compatible(BloomFilter<T> other) {
         return config().isCompatibleTo(other.config());
     }
 
     /**
      * 清除bf的元素与元数据
      */
-    public default void remove() {
+    default void remove() {
         clear();
     }
 
@@ -185,7 +185,7 @@ public interface BloomFilter<T> extends Cloneable, Serializable {
      * @param bytes input element
      * @return hash values
      */
-    public default int[] hash(byte[] bytes) {
+    default int[] hash(byte[] bytes) {
         return config().hashFunction().hash(bytes, config().size(), config().hashes());
     }
 
@@ -195,7 +195,7 @@ public interface BloomFilter<T> extends Cloneable, Serializable {
      * @param value 待hash的字符串
      * @return array with <i>hashes</i> 哈希位置，范围为<i>[0,size)</i>
      */
-    public default int[] hash(String value) {
+    default int[] hash(String value) {
         return hash(value.getBytes(FilterBuilder.defaultCharset()));
     }
 
@@ -230,7 +230,7 @@ public interface BloomFilter<T> extends Cloneable, Serializable {
      * @param insertedElements 已写入bf的元素个数
      * @return probability of a false positive after <i>expectedElements</i> {@link #addRaw(byte[])} operations
      */
-    public default double getFalsePositiveProbability(double insertedElements) {
+    default double getFalsePositiveProbability(double insertedElements) {
         return FilterBuilder.optimalP(config().hashes(), config().size(), insertedElements);
     }
 
@@ -239,7 +239,7 @@ public interface BloomFilter<T> extends Cloneable, Serializable {
      *
      * @return probability of a false positive
      */
-    public default double getEstimatedFalsePositiveProbability() {
+    default double getEstimatedFalsePositiveProbability() {
         return getFalsePositiveProbability(getEstimatedPopulation());
     }
 
@@ -250,7 +250,7 @@ public interface BloomFilter<T> extends Cloneable, Serializable {
      * @param n 已存在的元素个数
      * @return 每个元素的bit数
      */
-    public default double getBitsPerElement(int n) {
+    default double getBitsPerElement(int n) {
         return config().size() / (double) n;
     }
 
@@ -260,7 +260,7 @@ public interface BloomFilter<T> extends Cloneable, Serializable {
      * @param n 已存在的元素个数
      * @return 判断在 <i>expectedElements</i> {@link #addRaw(byte[])} 操作之后 bit为0的可能性
      */
-    public default double getBitZeroProbability(int n) {
+    default double getBitZeroProbability(int n) {
         return Math.pow(1 - (double) 1 / config().size(), config().hashes() * n);
     }
 
@@ -269,11 +269,11 @@ public interface BloomFilter<T> extends Cloneable, Serializable {
      *
      * @return 估算的bf的元素数量
      */
-    public default Double getEstimatedPopulation() {
+    default Double getEstimatedPopulation() {
         return population(getBitSet(), config());
     }
 
-    public static Double population(BitSet bitSet, FilterBuilder config) {
+    static Double population(BitSet bitSet, FilterBuilder config) {
         int oneBits = bitSet.cardinality();
         return -config.size() / ((double) config.hashes()) * Math.log(1 - oneBits / ((double) config.size()));
     }
@@ -283,7 +283,7 @@ public interface BloomFilter<T> extends Cloneable, Serializable {
      *
      * @return bf的字符串表示
      */
-    public default String asString() {
+    default String asString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Bloom Filter Parameters: ");
         sb.append("size = " + config().size() + ", ");

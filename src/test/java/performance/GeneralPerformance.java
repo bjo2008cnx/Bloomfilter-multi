@@ -3,7 +3,7 @@ package performance;
 import orestes.bloomfilter.CountingBloomFilter;
 import orestes.bloomfilter.FilterBuilder;
 import orestes.bloomfilter.HashProvider.HashMethod;
-import orestes.bloomfilter.expiring.ExpiringBloomFilter;
+import orestes.bloomfilter.expiring.ExpiringCountingBloomFilter;
 import orestes.bloomfilter.expiring.ExpiringBloomFilterMemory;
 import orestes.bloomfilter.json.BloomFilterConverter;
 import orestes.bloomfilter.redis.CountingBloomFilterRedis;
@@ -58,11 +58,11 @@ public class GeneralPerformance {
         }
     }
 
-    private static void testOpExp(BiConsumer<String, ExpiringBloomFilter<String>> op, String name) throws Exception {
+    private static void testOpExp(BiConsumer<String, ExpiringCountingBloomFilter<String>> op, String name) throws Exception {
         testOpExp(op, name, 100_000);
     }
 
-    private static void testOpExp(BiConsumer<String, ExpiringBloomFilter<String>> op, String name, int size) throws Exception {
+    private static void testOpExp(BiConsumer<String, ExpiringCountingBloomFilter<String>> op, String name, int size) throws Exception {
         Graph g = new Graph();
 
         List<String> input = Randoms.BYTES.generate(ops, 1)
@@ -73,7 +73,7 @@ public class GeneralPerformance {
         for (int i = from; i < to; i++) {
             for (int j = 0; j < rounds; j++) {
                 System.err.println((int) (Math.pow(2, i)));
-                ExpiringBloomFilter<String> b = new ExpiringBloomFilterMemory<>(new FilterBuilder(size, 5).hashFunction(HashMethod.Murmur3));
+                ExpiringCountingBloomFilter<String> b = new ExpiringBloomFilterMemory<>(new FilterBuilder(size, 5).hashFunction(HashMethod.Murmur3));
                 /*ExpiringBloomFilterRedis<String> b = new ExpiringBloomFilterRedis<>(
                     new FilterBuilder(size, 5).hashFunction(HashMethod.Murmur3)
                         .redisBacked(true)

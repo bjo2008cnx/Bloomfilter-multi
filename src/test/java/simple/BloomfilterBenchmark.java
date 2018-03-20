@@ -51,7 +51,7 @@ public class BloomfilterBenchmark {
             nonExistingElements.add(new String(b));
         }
 
-        BloomFilter<String> bf = new BloomFilter<String>(0.001, elementCount);
+        MemoryBloomFilter<String> bf = new MemoryBloomFilter<String>(0.001, elementCount);
 
         System.out.println("Testing " + elementCount + " elements");
         System.out.println("k is " + bf.getK());

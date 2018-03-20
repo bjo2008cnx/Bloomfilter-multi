@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-public class ExpiringBloomFilterMemory<T> extends CountingBloomFilter32<T> implements ExpiringBloomFilter<T> {
+public class ExpiringBloomFilterMemory<T> extends CountingBloomFilter32<T> implements ExpiringCountingBloomFilter<T> {
     private final Map<T, Long> expirations = new ConcurrentHashMap<>();
     private ExpirationQueue<T> queue;
 

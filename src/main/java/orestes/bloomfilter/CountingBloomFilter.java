@@ -12,13 +12,13 @@ public interface CountingBloomFilter<T> extends BloomFilter<T> {
     /**
      * @return 用于计数的bit位数
      */
-    public default int getCountingBits() {
+    default int getCountingBits() {
         return config().countingBits();
     }
 
 
     @Override
-    public default boolean addRaw(byte[] element) {
+    default boolean addRaw(byte[] element) {
         return addAndEstimateCountRaw(element) == 1;
     }
 
@@ -28,7 +28,7 @@ public interface CountingBloomFilter<T> extends BloomFilter<T> {
      * @param element 待删除元素
      * @return {@code true} 删除元素后元素对应的bits是否都为0
      */
-    public default boolean removeRaw(byte[] element) {
+    default boolean removeRaw(byte[] element) {
         return removeAndEstimateCountRaw(element) <= 0;
     }
 
@@ -38,7 +38,7 @@ public interface CountingBloomFilter<T> extends BloomFilter<T> {
      * @param element 待删除元素
      * @return {@code true}  删除元素后元素对应的bits是否都为0
      */
-    public default boolean remove(T element) {
+    default boolean remove(T element) {
         return removeRaw(toBytes(element));
     }
 
@@ -49,7 +49,7 @@ public interface CountingBloomFilter<T> extends BloomFilter<T> {
      * @param elements 待删除元素
      * @return 删除元素后元素对应的bits是否都为0的结果列表
      */
-    public default List<Boolean> removeAll(Collection<T> elements) {
+    default List<Boolean> removeAll(Collection<T> elements) {
         return elements.stream().map(this::remove).collect(Collectors.toList());
     }
 
@@ -61,14 +61,7 @@ public interface CountingBloomFilter<T> extends BloomFilter<T> {
      * @param element 待查询的元素
      * @return 估计的计数
      */
-    public long getEstimatedCount(T element);
-
-    /**
-     * 添加一个元素并返回元素被添加的次数
-     * @param element 待添加的元素
-     * @return 元素被添加的次数
-     */
-    public long addAndEstimateCountRaw(byte[] element);
+    long getEstimatedCount(T element);
 
     /**
      * 添加一个元素并返回元素被添加的次数
@@ -76,7 +69,15 @@ public interface CountingBloomFilter<T> extends BloomFilter<T> {
      * @param element 待添加的元素
      * @return 元素被添加的次数
      */
-    public default long addAndEstimateCount(T element) {
+    long addAndEstimateCountRaw(byte[] element);
+
+    /**
+     * 添加一个元素并返回元素被添加的次数
+     *
+     * @param element 待添加的元素
+     * @return 元素被添加的次数
+     */
+    default long addAndEstimateCount(T element) {
         return addAndEstimateCountRaw(toBytes(element));
     }
 
@@ -86,7 +87,7 @@ public interface CountingBloomFilter<T> extends BloomFilter<T> {
      * @param element 待删除的元素
      * @return 元素被添加的次数
      */
-    public long removeAndEstimateCountRaw(byte[] element);
+    long removeAndEstimateCountRaw(byte[] element);
 
     /**
      * 删除一个元素并返回元素被添加的次数
@@ -94,13 +95,13 @@ public interface CountingBloomFilter<T> extends BloomFilter<T> {
      * @param element 待删除的元素
      * @return 元素被添加的次数
      */
-    public default long removeAndEstimateCount(T element) {
+    default long removeAndEstimateCount(T element) {
         return removeAndEstimateCountRaw(toBytes(element));
     }
 
     /**
      * @return clone
      */
-    public CountingBloomFilter<T> clone();
+    CountingBloomFilter<T> clone();
 
 }
